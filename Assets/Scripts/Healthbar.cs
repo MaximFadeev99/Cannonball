@@ -23,9 +23,11 @@ public class Healthbar : MonoBehaviour
 
     private IEnumerator ChangeSmoothly(float newValue, Color transitionColor)
     {
+        float colorChange = 0.15f;
+
         while (_slider.value != newValue)
         {
-            _slider.value = Mathf.MoveTowards(_slider.value, newValue, 0.15f);
+            _slider.value = Mathf.MoveTowards(_slider.value, newValue, colorChange);
             _slider.transform.Find("Fill Area").Find("Fill").GetComponent<UnityEngine.UI.Image>().color = transitionColor;          
             yield return new WaitForEndOfFrame();
         }

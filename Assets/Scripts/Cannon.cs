@@ -5,6 +5,7 @@ public class Cannon : MonoBehaviour
     [SerializeField] private GameObject _target;
     [SerializeField] private GameObject _cannonBall;
     [SerializeField] private Transform _cannonballSpawnPoint;
+
     private float _cannonballSpeed = 20f;
 
     private void Update()
