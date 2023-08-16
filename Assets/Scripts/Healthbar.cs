@@ -1,35 +1,50 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
-[RequireComponent(typeof(UnityEngine.UI.Slider))]
+[RequireComponent(typeof(Slider))]
 
 public class Healthbar : MonoBehaviour
 {
+    [SerializeField] private Target _target;
+    [SerializeField] private Image _bar;
+    
     private Coroutine _runningCoroutine;
-    private UnityEngine.UI.Slider _slider;
+    private Slider _slider;
 
     private void Awake()
     {
-        _slider = GetComponent<UnityEngine.UI.Slider>();
+        _slider = GetComponent<Slider>();
     }
 
-    public void ManageCoroutine(float newValue, Color transitionColor) 
+    private void OnEnable()
+    {
+        _target.healthChanged += ManageCoroutine;
+    }
+
+    private void OnDisable()
+    {
+        _target.healthChanged -= ManageCoroutine;
+    }
+
+    private void ManageCoroutine(float newValue, Color newColor) 
     {
         if(_runningCoroutine != null) 
             StopCoroutine(_runningCoroutine );
 
-        _runningCoroutine = StartCoroutine(ChangeSmoothly(newValue, transitionColor));
+        _runningCoroutine = StartCoroutine(ChangeSmoothly(newValue, newColor));
     }
 
-    private IEnumerator ChangeSmoothly(float newValue, Color transitionColor)
+    private IEnumerator ChangeSmoothly(float newValue, Color newColor)
     {
         float colorChange = 0.15f;
+        var waitTime = new WaitForEndOfFrame();
 
         while (_slider.value != newValue)
         {
             _slider.value = Mathf.MoveTowards(_slider.value, newValue, colorChange);
-            _slider.transform.Find("Fill Area").Find("Fill").GetComponent<UnityEngine.UI.Image>().color = transitionColor;          
-            yield return new WaitForEndOfFrame();
+            _bar.color = newColor;          
+            yield return waitTime;
         }
     }
 }

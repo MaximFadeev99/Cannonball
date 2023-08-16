@@ -16,7 +16,8 @@ public class Cannon : MonoBehaviour
 
     public void Fire() 
     {
-        GameObject newCannonball = Instantiate(_cannonBall, _cannonballSpawnPoint.position, _cannonballSpawnPoint.rotation);
+        GameObject newCannonball = Instantiate
+            (_cannonBall, _cannonballSpawnPoint.position, _cannonballSpawnPoint.rotation);
         newCannonball.GetComponent<Rigidbody2D>().velocity = -_cannonballSpawnPoint.right * _cannonballSpeed;
     }  
 }

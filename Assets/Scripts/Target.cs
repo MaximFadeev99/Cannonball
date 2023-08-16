@@ -1,18 +1,21 @@
 using UnityEngine;
 using DG.Tweening;
+using System;
 
 [RequireComponent(typeof(SpriteRenderer))]
 
 public class Target : MonoBehaviour
 {
-    [SerializeField] private Healthbar _healthbar;
-    
+    public Action<float, Color> healthChanged;
+
     private Vector3 [] _wayPoints;
     private float _initialHealth = 100;
     private float _health;
+    private float _colorChange = 0.08f;
     private SpriteRenderer _spriteRenderer;
     private Color _healthyColor;
     private Color _damagedColor = Color.red;
+    private Color _transitionColor;
 
     public float Health 
     {
@@ -43,45 +46,41 @@ public class Target : MonoBehaviour
     {
         float completionTime = 60;
 
-        Tween tween = transform.DOPath(_wayPoints, completionTime, PathType.CatmullRom).SetOptions(true);
+        Tween tween = transform.DOPath
+            (_wayPoints, completionTime, PathType.CatmullRom).SetOptions(true);
         tween.SetLoops(-1).SetEase(Ease.Linear);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (Health > 0) 
-            ChangeHealth(true);      
+        if (collision.gameObject.TryGetComponent<Cannonball>(out Cannonball cannonball)) 
+        {
+            if (Health > 0)
+                TakeDamage(cannonball.Damage);
+        }       
     }
 
-    private void ChangeHealth(bool isTakingDamage) 
+    private void TakeDamage(float damage) 
     {
-        Color transitionColor;
-        float healthChange = 10f;
-        float colorChange = 0.08f;
-
-        if (isTakingDamage)
-        {
-            Health -= healthChange;
-            transitionColor = new Color
-                (Mathf.MoveTowards(_spriteRenderer.color.r, _damagedColor.r, colorChange),
-                Mathf.MoveTowards(_spriteRenderer.color.g, _damagedColor.g, colorChange),
-                Mathf.MoveTowards(_spriteRenderer.color.b, _damagedColor.b, colorChange));
-        }
-        else 
-        {
-            Health += healthChange;
-            transitionColor = new Color
-                (Mathf.MoveTowards(_spriteRenderer.color.r, _healthyColor.r, colorChange),
-                Mathf.MoveTowards(_spriteRenderer.color.g, _healthyColor.g, colorChange),
-                Mathf.MoveTowards(_spriteRenderer.color.b, _healthyColor.b, colorChange));
-        }
-        
-        _spriteRenderer.color = transitionColor;
-        _healthbar.ManageCoroutine(Health, transitionColor);
+        Health -= damage;
+        _transitionColor = new Color
+            (Mathf.MoveTowards(_spriteRenderer.color.r, _damagedColor.r, _colorChange),
+             Mathf.MoveTowards(_spriteRenderer.color.g, _damagedColor.g, _colorChange),
+             Mathf.MoveTowards(_spriteRenderer.color.b, _damagedColor.b, _colorChange));
+        _spriteRenderer.color = _transitionColor;
+        healthChanged.Invoke(Health, _transitionColor);
     }
 
     public void Heal() 
     {
-        ChangeHealth(false);
+        float healthHeal = 10f;
+        
+        Health += healthHeal;
+        _transitionColor = new Color
+           (Mathf.MoveTowards(_spriteRenderer.color.r, _healthyColor.r, _colorChange),
+            Mathf.MoveTowards(_spriteRenderer.color.g, _healthyColor.g, _colorChange),
+            Mathf.MoveTowards(_spriteRenderer.color.b, _healthyColor.b, _colorChange));
+        _spriteRenderer.color = _transitionColor;
+        healthChanged.Invoke(Health, _transitionColor);
     }
 }
